@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>📚 My Library</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -258,9 +260,6 @@
     font-style: italic;
   }
 </style>
-</head>
-<body>
-
 <header class="library-header">
   <div>
     <div class="header-subtitle">Personal Collection</div>
@@ -314,7 +313,8 @@ function layoutPositions(count, canvasW) {
 }
 
 async function loadShelves() {
-  const res     = await fetch("http://127.0.0.1:3000/shelves");
+  // เปลี่ยนเป็น relative URL
+  const res     = await fetch("/shelves");
   const shelves = await res.json();
 
   const canvas  = document.getElementById("shelf-canvas");
@@ -370,7 +370,7 @@ async function loadShelves() {
     unit.onclick = () => { window.location.href = "shelf.html?id=" + s.id; };
     canvas.appendChild(unit);
 
-    fetch(`http://127.0.0.1:3000/shelves/${s.id}/books`)
+    fetch(`/shelves/${s.id}/books`)
       .then(r => r.json())
       .then(books => {
         countEl.textContent = `${books.length} เล่ม`;
@@ -397,7 +397,7 @@ async function loadShelves() {
 async function addShelf() {
   const name = document.getElementById("shelfName").value.trim();
   if (!name) return;
-  await fetch("http://127.0.0.1:3000/shelves", {
+  await fetch("/shelves", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ name })
@@ -409,7 +409,7 @@ async function addShelf() {
 async function editShelf(id) {
   const name = prompt("ชื่อใหม่:");
   if (!name) return;
-  await fetch(`http://127.0.0.1:3000/shelves/${id}`, {
+  await fetch(`/shelves/${id}`, {
     method: "PUT",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ name })
@@ -418,7 +418,7 @@ async function editShelf(id) {
 }
 
 async function deleteShelf(id) {
-  await fetch(`http://127.0.0.1:3000/shelves/${id}`, { method: "DELETE" });
+  await fetch(`/shelves/${id}`, { method: "DELETE" });
   loadShelves();
 }
 

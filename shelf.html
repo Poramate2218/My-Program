@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>📚 Shelf</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -701,9 +703,6 @@
   }
   .btn-close:hover { background: rgba(255,255,255,0.06); }
 </style>
-</head>
-<body>
-
 <header class="shelf-header">
   <button class="back-btn" onclick="window.location.href='index.html'">← ห้องสมุด</button>
   <div class="header-info">
@@ -761,11 +760,12 @@ function getDecoClass(idx) {
 }
 
 async function loadBooks() {
-  const res   = await fetch(`http://127.0.0.1:3000/shelves/${shelfId}/books`);
+  // ใช้ relative URL แทน localhost
+  const res   = await fetch(`/shelves/${shelfId}/books`);
   const books = await res.json();
 
   try {
-    const sRes    = await fetch(`http://127.0.0.1:3000/shelves`);
+    const sRes    = await fetch(`/shelves`);
     const shelves = await sRes.json();
     const shelf   = shelves.find(s => String(s.id) === String(shelfId));
     if (shelf) document.getElementById("shelfTitle").textContent = "📚 " + shelf.name;
@@ -830,7 +830,7 @@ async function loadBooks() {
 async function addBook() {
   const title = document.getElementById("title").value.trim();
   if (!title) return;
-  await fetch(`http://127.0.0.1:3000/shelves/${shelfId}/books`, {
+  await fetch(`/shelves/${shelfId}/books`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ title })
@@ -847,7 +847,7 @@ function openBook(book) {
 }
 
 async function save() {
-  await fetch(`http://127.0.0.1:3000/shelves/${shelfId}/books/${current.id}`, {
+  await fetch(`/shelves/${shelfId}/books/${current.id}`, {
     method: "PUT",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({
@@ -860,7 +860,7 @@ async function save() {
 }
 
 async function del() {
-  await fetch(`http://127.0.0.1:3000/shelves/${shelfId}/books/${current.id}`, { method: "DELETE" });
+  await fetch(`/shelves/${shelfId}/books/${current.id}`, { method: "DELETE" });
   closeModal();
   loadBooks();
 }
