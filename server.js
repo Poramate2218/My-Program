@@ -1,16 +1,25 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
+const path = require("path");
 
 const app = express();
-// เปลี่ยนให้ใช้ PORT จาก Render หรือ fallback เป็น 3000 สำหรับ local
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 
+// Serve static files (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname)));
+
+// Serve index.html for "/"
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
 const DATA_FILE = "data.json";
 
+// Load & Save data
 function loadData() {
   try {
     return JSON.parse(fs.readFileSync(DATA_FILE));
@@ -61,7 +70,6 @@ app.put("/shelves/:id", (req, res) => {
 // DELETE shelf
 app.delete("/shelves/:id", (req, res) => {
   let data = loadData();
-
   data.shelves = data.shelves.filter(s => s.id != req.params.id);
   saveData(data);
 
@@ -74,7 +82,6 @@ app.delete("/shelves/:id", (req, res) => {
 app.get("/shelves/:id/books", (req, res) => {
   const data = loadData();
   const shelf = data.shelves.find(s => s.id == req.params.id);
-
   res.json(shelf ? shelf.books : []);
 });
 
@@ -113,14 +120,13 @@ app.put("/shelves/:sid/books/:bid", (req, res) => {
 app.delete("/shelves/:sid/books/:bid", (req, res) => {
   const data = loadData();
   const shelf = data.shelves.find(s => s.id == req.params.sid);
-
   shelf.books = shelf.books.filter(b => b.id != req.params.bid);
   saveData(data);
 
   res.json({ success: true });
 });
 
-// ใช้ PORT จาก environment variable สำหรับ Render
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
