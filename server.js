@@ -3,7 +3,8 @@ const cors = require("cors");
 const fs = require("fs");
 
 const app = express();
-const PORT = 3000;
+// เปลี่ยนให้ใช้ PORT จาก Render หรือ fallback เป็น 3000 สำหรับ local
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -119,6 +120,7 @@ app.delete("/shelves/:sid/books/:bid", (req, res) => {
   res.json({ success: true });
 });
 
+// ใช้ PORT จาก environment variable สำหรับ Render
 app.listen(PORT, () => {
-  console.log("Server running on http://localhost:3000");
+  console.log(`Server running on port ${PORT}`);
 });
