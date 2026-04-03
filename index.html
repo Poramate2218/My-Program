@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 My Library</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --wood-dark:   #3d1f0d;
+    --wood-mid:    #6b3a1f;
+    --wood-light:  #a0612a;
+    --wood-plank:  #c4813a;
+    --wood-grain:  #8b4f1e;
+    --shelf-board: #7a4012;
+    --shelf-edge:  #5a2d0c;
+    --cream:       #f5ead8;
+    --parchment:   #ede0c4;
+    --gold:        #c9922a;
+    --gold-light:  #e8b84b;
+    --shadow:      rgba(30, 10, 0, 0.6);
+    --shelf-width: 460px;
+  }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background-color: var(--wood-dark);
+    background-image:
+      repeating-linear-gradient(92deg, transparent 0px, transparent 18px,
+        rgba(255,255,255,0.012) 18px, rgba(255,255,255,0.012) 19px),
+      repeating-linear-gradient(180deg, transparent 0px, transparent 60px,
+        rgba(0,0,0,0.08) 60px, rgba(0,0,0,0.08) 61px);
+    min-height: 100vh;
+    color: var(--cream);
+  }
+
+  /* ===== HEADER ===== */
+  .library-header {
+    background: linear-gradient(180deg, #1a0a03 0%, var(--wood-dark) 100%);
+    border-bottom: 4px solid var(--gold);
+    padding: 28px 40px 22px;
+    display: flex;
+    align-items: flex-end;
+    position: relative;
+    z-index: 10;
+  }
+  .library-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% -20%, rgba(201,146,42,0.15) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 900;
+    color: var(--gold-light);
+    letter-spacing: 0.04em;
+    text-shadow: 2px 3px 8px rgba(0,0,0,0.7);
+    line-height: 1;
+  }
+  .header-subtitle {
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--wood-plank);
+    margin-bottom: 4px;
+  }
+
+  /* ===== ADD SHELF BAR ===== */
+  .add-shelf-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 40px;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    position: relative;
+    z-index: 10;
+  }
+  .add-shelf-bar input {
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid var(--wood-light);
+    border-radius: 4px;
+    color: var(--cream);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 0.95rem;
+    padding: 9px 16px;
+    width: 260px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .add-shelf-bar input::placeholder { color: rgba(196,129,58,0.5); }
+  .add-shelf-bar input:focus { border-color: var(--gold-light); background: rgba(255,255,255,0.11); }
+
+  .btn-add {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--wood-plank) 100%);
+    color: var(--wood-dark);
+    font-family: 'Sarabun', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 4px;
+    padding: 9px 20px;
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.1s;
+  }
+  .btn-add:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+  /* ===== FLOATING CANVAS ===== */
+  #shelf-canvas {
+    position: relative;
+    width: 100%;
+    min-height: calc(100vh - 130px);
+  }
+
+  /* ===== FLOATING SHELF UNIT ===== */
+  .shelf-unit {
+    position: absolute;
+    width: var(--shelf-width);
+    background: linear-gradient(135deg, var(--wood-mid) 0%, var(--wood-grain) 50%, var(--wood-mid) 100%);
+    border-radius: 3px;
+    box-shadow:
+      0 14px 44px var(--shadow),
+      0 3px 8px rgba(0,0,0,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+    cursor: pointer;
+    overflow: hidden;
+    transition: box-shadow 0.25s ease, filter 0.2s;
+  }
+  .shelf-unit::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, transparent 0px, transparent 24px,
+      rgba(0,0,0,0.055) 24px, rgba(0,0,0,0.055) 25px);
+    pointer-events: none;
+  }
+  /* wall shadow beneath each shelf */
+  .shelf-unit::after {
+    content: '';
+    position: absolute;
+    bottom: -20px; left: 6%; right: 6%;
+    height: 20px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.5) 0%, transparent 72%);
+    pointer-events: none;
+  }
+  .shelf-unit:hover {
+    box-shadow:
+      0 22px 60px var(--shadow),
+      0 6px 16px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.13);
+    filter: brightness(1.06);
+    z-index: 80 !important;
+    transform: translateY(-5px) rotate(0deg) !important;
+  }
+
+  .shelf-nameplate {
+    padding: 13px 20px 11px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(90deg, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.18) 100%);
+    border-bottom: 2px solid rgba(0,0,0,0.32);
+  }
+  .shelf-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    letter-spacing: 0.05em;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 270px;
+  }
+  .shelf-name::before { content: '◈'; color: var(--gold); font-size: 0.65em; flex-shrink: 0; }
+
+  .shelf-actions {
+    display: flex;
+    gap: 5px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+  }
+  .shelf-unit:hover .shelf-actions { opacity: 1; }
+
+  .btn-icon {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 3px;
+    color: var(--cream);
+    font-size: 0.78rem;
+    padding: 4px 9px;
+    cursor: pointer;
+    transition: background 0.15s;
+    line-height: 1.4;
+  }
+  .btn-icon:hover { background: rgba(0,0,0,0.65); }
+  .btn-icon.danger:hover { background: rgba(180,30,30,0.6); }
+
+  .shelf-body {
+    padding: 16px 16px 0;
+    min-height: 80px;
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    flex-wrap: wrap;
+    position: relative;
+  }
+
+  .shelf-plank {
+    height: 20px;
+    background: linear-gradient(180deg, var(--shelf-board) 0%, var(--shelf-edge) 70%, #3a1a06 100%);
+    box-shadow: 0 5px 14px rgba(0,0,0,0.55);
+    position: relative;
+  }
+  .shelf-plank::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.14) 100%);
+  }
+
+  .book-count {
+    background: rgba(0,0,0,0.45);
+    border-radius: 10px;
+    font-size: 0.74rem;
+    color: var(--parchment);
+    padding: 2px 9px;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  .book-spine-preview {
+    width: 22px;
+    height: 96px;
+    border-radius: 2px 0 0 2px;
+    flex-shrink: 0;
+    box-shadow: 1px 0 3px rgba(0,0,0,0.5), inset 1px 0 0 rgba(255,255,255,0.1);
+    transition: height 0.2s;
+  }
+  .book-spine-preview:hover { height: 110px; }
+
+  .empty-shelf {
+    font-size: 0.78rem;
+    color: rgba(196,129,58,0.38);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 4px 18px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<header class="library-header">
+  <div>
+    <div class="header-subtitle">Personal Collection</div>
+    <div class="header-title">📚 My Library</div>
+  </div>
+</header>
+
+<div class="add-shelf-bar">
+  <input id="shelfName" placeholder="ชื่อชั้นหนังสือใหม่…" />
+  <button class="btn-add" onclick="addShelf()">+ เพิ่มชั้น</button>
+</div>
+
+<div id="shelf-canvas"></div>
+
+<script>
+const SPINE_COLORS = [
+  ['#c0392b','#922b21'],['#e67e22','#b7770d'],['#27ae60','#1a7a43'],
+  ['#2980b9','#1a5f8a'],['#8e44ad','#6c2d8a'],['#16a085','#0d6b59'],
+  ['#d35400','#a04000'],['#2c3e50','#1a252f'],['#1abc9c','#148f77'],
+  ['#9b59b6','#76448a'],['#f39c12','#b7770d'],['#cc6600','#994400'],
+];
+function spineColor(i) { return SPINE_COLORS[i % SPINE_COLORS.length]; }
+
+const SHELF_W = 460;
+const SHELF_H = 170;
+const V_GAP   = 70;
+const MARGIN  = 48;
+
+function layoutPositions(count, canvasW) {
+  const usable = canvasW - MARGIN * 2;
+  const cols   = Math.max(1, Math.floor((usable + 24) / (SHELF_W + 24)));
+  const cellW  = usable / cols;
+  const cellH  = SHELF_H + V_GAP;
+
+  const positions = [];
+  for (let i = 0; i < count; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+
+    const maxJX = Math.max(0, (cellW - SHELF_W) / 2);
+    const jX    = (Math.random() - 0.5) * maxJX * 1.6;
+    const jY    = (Math.random() - 0.5) * 36;
+
+    const x    = Math.max(MARGIN, Math.min(canvasW - SHELF_W - MARGIN, MARGIN + col * cellW + (cellW - SHELF_W) / 2 + jX));
+    const y    = MARGIN + row * cellH + jY;
+    const tilt = (Math.random() - 0.5) * 5;
+
+    positions.push({ x, y, tilt });
+  }
+  return positions;
+}
+
+async function loadShelves() {
+  const res     = await fetch("http://127.0.0.1:3000/shelves");
+  const shelves = await res.json();
+
+  const canvas  = document.getElementById("shelf-canvas");
+  canvas.innerHTML = "";
+  const canvasW = canvas.offsetWidth || window.innerWidth;
+
+  const positions = layoutPositions(shelves.length, canvasW);
+
+  let maxY = 300;
+
+  shelves.forEach((s, si) => {
+    const { x, y, tilt } = positions[si];
+    maxY = Math.max(maxY, y + SHELF_H + 60);
+
+    const unit = document.createElement("div");
+    unit.className = "shelf-unit";
+    unit.style.left      = x + "px";
+    unit.style.top       = y + "px";
+    unit.style.transform = `rotate(${tilt}deg)`;
+    unit.style.zIndex    = 5 + si;
+
+    const nameplate = document.createElement("div");
+    nameplate.className = "shelf-nameplate";
+
+    const nameEl = document.createElement("span");
+    nameEl.className = "shelf-name";
+    nameEl.textContent = s.name;
+
+    const countEl = document.createElement("span");
+    countEl.className = "book-count";
+    countEl.textContent = '…';
+
+    const actionsEl = document.createElement("div");
+    actionsEl.className = "shelf-actions";
+    actionsEl.innerHTML = `
+      <button class="btn-icon" onclick="event.stopPropagation(); editShelf(${s.id})">✏️</button>
+      <button class="btn-icon danger" onclick="event.stopPropagation(); deleteShelf(${s.id})">✕</button>
+    `;
+
+    nameplate.appendChild(nameEl);
+    nameplate.appendChild(countEl);
+    nameplate.appendChild(actionsEl);
+
+    const body = document.createElement("div");
+    body.className = "shelf-body";
+
+    const plank = document.createElement("div");
+    plank.className = "shelf-plank";
+
+    unit.appendChild(nameplate);
+    unit.appendChild(body);
+    unit.appendChild(plank);
+    unit.onclick = () => { window.location.href = "shelf.html?id=" + s.id; };
+    canvas.appendChild(unit);
+
+    fetch(`http://127.0.0.1:3000/shelves/${s.id}/books`)
+      .then(r => r.json())
+      .then(books => {
+        countEl.textContent = `${books.length} เล่ม`;
+        body.innerHTML = "";
+        if (books.length === 0) {
+          body.innerHTML = '<span class="empty-shelf">— ยังไม่มีหนังสือ —</span>';
+        } else {
+          books.slice(0, 20).forEach((b, bi) => {
+            const spine = document.createElement("div");
+            spine.className = "book-spine-preview";
+            const [top, bot] = spineColor(bi);
+            spine.style.background = `linear-gradient(180deg, ${top} 0%, ${bot} 100%)`;
+            spine.title = b.title;
+            body.appendChild(spine);
+          });
+        }
+      })
+      .catch(() => { countEl.textContent = ''; });
+  });
+
+  canvas.style.height = (maxY + 60) + "px";
+}
+
+async function addShelf() {
+  const name = document.getElementById("shelfName").value.trim();
+  if (!name) return;
+  await fetch("http://127.0.0.1:3000/shelves", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ name })
+  });
+  document.getElementById("shelfName").value = "";
+  loadShelves();
+}
+
+async function editShelf(id) {
+  const name = prompt("ชื่อใหม่:");
+  if (!name) return;
+  await fetch(`http://127.0.0.1:3000/shelves/${id}`, {
+    method: "PUT",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ name })
+  });
+  loadShelves();
+}
+
+async function deleteShelf(id) {
+  await fetch(`http://127.0.0.1:3000/shelves/${id}`, { method: "DELETE" });
+  loadShelves();
+}
+
+loadShelves();
+window.addEventListener("resize", () => loadShelves());
+</script>
+</body>
+</html>

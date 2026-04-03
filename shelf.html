@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 Shelf</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --wood-dark:   #3d1f0d;
+    --wood-mid:    #6b3a1f;
+    --wood-light:  #a0612a;
+    --wood-plank:  #c4813a;
+    --wood-grain:  #8b4f1e;
+    --shelf-board: #7a4012;
+    --shelf-edge:  #5a2d0c;
+    --cream:       #f5ead8;
+    --parchment:   #ede0c4;
+    --gold:        #c9922a;
+    --gold-light:  #e8b84b;
+    --shadow:      rgba(30, 10, 0, 0.6);
+
+    --spine-w: 22vw;
+    --spine-w-min: 180px;
+    --spine-w-max: 260px;
+    --spine-h: 52vh;
+    --spine-h-min: 260px;
+  }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background-color: var(--wood-dark);
+    background-image:
+      repeating-linear-gradient(92deg, transparent 0px, transparent 22px,
+        rgba(255,255,255,0.012) 22px, rgba(255,255,255,0.012) 23px),
+      repeating-linear-gradient(180deg, transparent 0px, transparent 70px,
+        rgba(0,0,0,0.07) 70px, rgba(0,0,0,0.07) 71px);
+    min-height: 100vh;
+    color: var(--cream);
+    overflow-x: hidden;
+  }
+
+  /* ===== HEADER ===== */
+  .shelf-header {
+    background: linear-gradient(180deg, #1a0a03 0%, var(--wood-dark) 100%);
+    border-bottom: 4px solid var(--gold);
+    padding: 24px 40px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+  }
+  .shelf-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% -20%, rgba(201,146,42,0.13) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .back-btn {
+    background: transparent;
+    border: 1.5px solid rgba(201,146,42,0.4);
+    border-radius: 4px;
+    color: var(--gold-light);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 0.85rem;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+  .back-btn:hover { background: rgba(201,146,42,0.12); border-color: var(--gold-light); }
+  .header-info { flex: 1; }
+  .header-sub {
+    font-size: 0.72rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--wood-plank);
+    margin-bottom: 2px;
+  }
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+    font-weight: 900;
+    color: var(--gold-light);
+    text-shadow: 2px 3px 8px rgba(0,0,0,0.7);
+    line-height: 1.1;
+  }
+
+  /* ===== ADD BOOK BAR ===== */
+  .add-book-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 40px;
+    background: rgba(0,0,0,0.28);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .add-book-bar input {
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid var(--wood-light);
+    border-radius: 4px;
+    color: var(--cream);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 0.95rem;
+    padding: 9px 16px;
+    width: 280px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .add-book-bar input::placeholder { color: rgba(196,129,58,0.45); }
+  .add-book-bar input:focus { border-color: var(--gold-light); background: rgba(255,255,255,0.1); }
+  .btn-add {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--wood-plank) 100%);
+    color: var(--wood-dark);
+    font-family: 'Sarabun', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 4px;
+    padding: 9px 20px;
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.1s;
+  }
+  .btn-add:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+  /* ===== ROWS CONTAINER ===== */
+  #rows {
+    padding: 40px 0 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 52px;
+  }
+
+  /* ===== ONE SHELF ROW ===== */
+  .shelf-row-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .shelf-scroll-track {
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: thin;
+    scrollbar-color: var(--shelf-board) rgba(0,0,0,0.3);
+    padding-bottom: 6px;
+  }
+  .shelf-scroll-track::-webkit-scrollbar { height: 7px; }
+  .shelf-scroll-track::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+  .shelf-scroll-track::-webkit-scrollbar-thumb {
+    background: var(--shelf-board);
+    border-radius: 4px;
+  }
+  .shelf-scroll-track::-webkit-scrollbar-thumb:hover { background: var(--wood-plank); }
+
+  .shelf-case {
+    background: linear-gradient(135deg, var(--wood-mid) 0%, var(--wood-grain) 45%, var(--wood-mid) 100%);
+    border-radius: 3px 3px 0 0;
+    padding: 20px 20px 0;
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 4px;
+    min-width: 100%;
+    min-height: calc(var(--spine-h) + 36px);
+    min-height: calc(max(var(--spine-h), var(--spine-h-min)) + 36px);
+    position: relative;
+    box-shadow: inset 0 -6px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07);
+  }
+  .shelf-case::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, transparent 0px, transparent 32px,
+      rgba(0,0,0,0.04) 32px, rgba(0,0,0,0.04) 33px);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .shelf-plank {
+    height: 24px;
+    background: linear-gradient(180deg, var(--shelf-board) 0%, var(--shelf-edge) 60%, #3a1a06 100%);
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    position: relative;
+  }
+  .shelf-plank::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.15) 100%);
+  }
+
+  .end-panel {
+    width: 18px;
+    align-self: stretch;
+    background: linear-gradient(90deg, #3a1808 0%, #5a2d0c 100%);
+    flex-shrink: 0;
+    border-radius: 2px 0 0 2px;
+  }
+  .end-panel.right { border-radius: 0 2px 2px 0; background: linear-gradient(90deg, #5a2d0c 0%, #3a1808 100%); }
+
+  /* ===== LARGE BOOK SPINE ===== */
+  .book-spine {
+    width: clamp(var(--spine-w-min), var(--spine-w), var(--spine-w-max));
+    height: clamp(var(--spine-h-min), var(--spine-h), 400px);
+    border-radius: 2px 4px 0 0;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    box-shadow:
+      3px 0 10px rgba(0,0,0,0.5),
+      -2px 0 0 rgba(0,0,0,0.3),
+      inset 2px 0 0 rgba(255,255,255,0.12);
+    transition: height 0.22s ease, filter 0.15s, transform 0.18s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .book-spine:hover {
+    filter: brightness(1.2);
+    transform: translateY(-14px);
+    z-index: 10;
+  }
+
+  .book-spine::after {
+    content: '';
+    position: absolute; top: 0; left: 8px; bottom: 0; width: 5px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+    border-radius: 3px;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .spine-title {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-family: 'Sarabun', sans-serif;
+    font-size: clamp(0.85rem, 1.2vw, 1.1rem);
+    font-weight: 600;
+    color: rgba(255,255,255,0.97);
+    text-shadow: 0 1px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.8);
+    letter-spacing: 0.08em;
+    padding: 10px 4px;
+    max-height: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    z-index: 3;
+  }
+
+  .spine-band {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 28px;
+    background: rgba(0,0,0,0.35);
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+    z-index: 2;
+  }
+  .spine-band-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 20px;
+    background: rgba(0,0,0,0.3);
+    border-top: 2px solid rgba(255,255,255,0.15);
+    z-index: 2;
+  }
+
+  /* ============================
+     SPINE DECOR LAYER
+     Boosted opacity & size for all 20 styles
+  ============================ */
+  .spine-decor {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  /* ── 1. Double gold rule lines top & bottom ── */
+  .deco-1 .spine-decor::before,
+  .deco-1 .spine-decor::after {
+    content: '';
+    position: absolute; left: 8%; right: 8%; height: 0;
+    box-shadow: 0 0 0 2px rgba(232,184,75,0.95), 0 5px 0 0 rgba(232,184,75,0.6);
+  }
+  .deco-1 .spine-decor::before { top: 36px; }
+  .deco-1 .spine-decor::after  { bottom: 28px; }
+
+  /* ── 2. Diamond ornament centre ── */
+  .deco-2 .spine-decor::before {
+    content: '◆';
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4rem;
+    color: rgba(232,184,75,0.55);
+    line-height: 1;
+  }
+  .deco-2 .spine-decor::after {
+    content: '◇';
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.2rem;
+    color: rgba(255,255,255,0.45);
+    line-height: 1;
+  }
+
+  /* ── 3. Dotted vertical borders left & right ── */
+  .deco-3 .spine-decor::before {
+    content: '';
+    position: absolute; top: 32px; bottom: 24px; left: 12px; width: 3px;
+    background: repeating-linear-gradient(180deg,
+      rgba(255,255,255,0.75) 0px, rgba(255,255,255,0.75) 5px,
+      transparent 5px, transparent 11px);
+  }
+  .deco-3 .spine-decor::after {
+    content: '';
+    position: absolute; top: 32px; bottom: 24px; right: 12px; width: 3px;
+    background: repeating-linear-gradient(180deg,
+      rgba(255,255,255,0.6) 0px, rgba(255,255,255,0.6) 5px,
+      transparent 5px, transparent 11px);
+  }
+
+  /* ── 4. Fleur-de-lis trio ── */
+  .deco-4 .spine-decor::before {
+    content: '⚜ ⚜ ⚜';
+    position: absolute; bottom: 32px; left: 0; right: 0;
+    text-align: center;
+    font-size: 1rem;
+    letter-spacing: 0.35em;
+    color: rgba(232,184,75,0.9);
+  }
+  .deco-4 .spine-decor::after {
+    content: '⚜';
+    position: absolute; top: 36px; left: 0; right: 0;
+    text-align: center;
+    font-size: 1.5rem;
+    color: rgba(232,184,75,0.95);
+  }
+
+  /* ── 5. Art-deco radiating rays from top ── */
+  .deco-5 .spine-decor::before {
+    content: '';
+    position: absolute; top: 0; left: 50%; width: 0; height: 0;
+    border-left: 80px solid transparent;
+    border-right: 80px solid transparent;
+    border-top: 100px solid rgba(255,255,255,0.18);
+    transform: translateX(-50%);
+  }
+  .deco-5 .spine-decor::after {
+    content: '';
+    position: absolute; top: 0; left: 50%; width: 0; height: 0;
+    border-left: 46px solid transparent;
+    border-right: 46px solid transparent;
+    border-top: 65px solid rgba(255,255,255,0.12);
+    transform: translateX(-50%);
+  }
+
+  /* ── 6. Corner bracket marks ── */
+  .deco-6 .spine-decor::before {
+    content: '';
+    position: absolute;
+    top: 34px; left: 10px;
+    width: 30px; height: 30px;
+    border-top: 3px solid rgba(232,184,75,0.9);
+    border-left: 3px solid rgba(232,184,75,0.9);
+  }
+  .deco-6 .spine-decor::after {
+    content: '';
+    position: absolute;
+    bottom: 26px; right: 10px;
+    width: 30px; height: 30px;
+    border-bottom: 3px solid rgba(232,184,75,0.9);
+    border-right: 3px solid rgba(232,184,75,0.9);
+  }
+
+  /* ── 7. Circular medallion ring ── */
+  .deco-7 .spine-decor::before {
+    content: '';
+    position: absolute; top: 50%; left: 50%;
+    width: 80px; height: 80px;
+    margin: -40px 0 0 -40px;
+    border-radius: 50%;
+    border: 3px solid rgba(232,184,75,0.75);
+    box-shadow: 0 0 0 6px rgba(232,184,75,0.18), 0 0 0 8px rgba(232,184,75,0.4);
+  }
+  .deco-7 .spine-decor::after {
+    content: '✦';
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    font-size: 2rem;
+    color: rgba(232,184,75,0.75);
+  }
+
+  /* ── 8. Chevron / zigzag stripe band in middle ── */
+  .deco-8 .spine-decor::before {
+    content: '';
+    position: absolute; top: 50%; left: 0; right: 0; height: 30px;
+    margin-top: -15px;
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(255,255,255,0.22) 0px, rgba(255,255,255,0.22) 7px,
+      transparent 7px, transparent 14px
+    );
+  }
+
+  /* ── 9. Scattered five-point stars ── */
+  .deco-9 .spine-decor::before {
+    content: '★';
+    position: absolute; top: 38px; left: 0; right: 0;
+    text-align: center;
+    font-size: 1.6rem;
+    color: rgba(232,184,75,0.85);
+  }
+  .deco-9 .spine-decor::after {
+    content: '★  ★';
+    position: absolute; bottom: 30px; left: 0; right: 0;
+    text-align: center;
+    font-size: 1.1rem;
+    letter-spacing: 0.7em;
+    color: rgba(232,184,75,0.7);
+  }
+
+  /* ── 10. Greek-key top border ── */
+  .deco-10 .spine-decor::before {
+    content: '';
+    position: absolute; top: 28px; left: 8%; right: 8%; height: 12px;
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(232,184,75,0.9) 0px, rgba(232,184,75,0.9) 3px,
+      transparent 3px, transparent 6px,
+      rgba(232,184,75,0.65) 6px, rgba(232,184,75,0.65) 9px,
+      transparent 9px, transparent 12px
+    );
+  }
+  .deco-10 .spine-decor::after {
+    content: '';
+    position: absolute; bottom: 20px; left: 8%; right: 8%; height: 12px;
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(232,184,75,0.9) 0px, rgba(232,184,75,0.9) 3px,
+      transparent 3px, transparent 6px,
+      rgba(232,184,75,0.65) 6px, rgba(232,184,75,0.65) 9px,
+      transparent 9px, transparent 12px
+    );
+  }
+
+  /* ── 11. Inner frame border ── */
+  .deco-11 .spine-decor::before {
+    content: '';
+    position: absolute;
+    top: 34px; left: 8px; bottom: 24px; right: 8px;
+    border: 2.5px solid rgba(255,255,255,0.35);
+    border-radius: 2px;
+  }
+  .deco-11 .spine-decor::after {
+    content: '';
+    position: absolute;
+    top: 42px; left: 16px; bottom: 32px; right: 16px;
+    border: 1.5px solid rgba(232,184,75,0.5);
+    border-radius: 1px;
+  }
+
+  /* ── 12. Herringbone texture band ── */
+  .deco-12 .spine-decor::before {
+    content: '';
+    position: absolute; top: 50%; left: 0; right: 0; height: 42px;
+    margin-top: -21px;
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.2) 0px, rgba(255,255,255,0.2) 4px, transparent 4px, transparent 10px),
+      repeating-linear-gradient(-45deg, rgba(255,255,255,0.2) 0px, rgba(255,255,255,0.2) 4px, transparent 4px, transparent 10px);
+  }
+
+  /* ── 13. Classic ribbon bookmark ── */
+  .deco-13 .spine-decor::before {
+    content: '';
+    position: absolute; top: 0; right: 26px; width: 18px; height: 66px;
+    background: linear-gradient(180deg, rgba(232,184,75,0.85) 0%, rgba(232,184,75,0.45) 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%);
+  }
+
+  /* ── 14. Cross / plus ornament ── */
+  .deco-14 .spine-decor::before {
+    content: '✛';
+    position: absolute; top: 38px; left: 0; right: 0;
+    text-align: center;
+    font-size: 1.8rem;
+    color: rgba(255,255,255,0.5);
+  }
+  .deco-14 .spine-decor::after {
+    content: '✛';
+    position: absolute; bottom: 28px; left: 0; right: 0;
+    text-align: center;
+    font-size: 1.4rem;
+    color: rgba(232,184,75,0.65);
+  }
+
+  /* ── 15. Diagonal stripe texture ── */
+  .deco-15 .spine-decor::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      -55deg,
+      transparent 0px, transparent 12px,
+      rgba(255,255,255,0.13) 12px, rgba(255,255,255,0.13) 15px
+    );
+  }
+
+  /* ── 16. Polka dots ── */
+  .deco-16 .spine-decor::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.38) 3px, transparent 3px);
+    background-size: 20px 20px;
+    background-position: 10px 10px;
+  }
+
+  /* ── 17. Vine / leaf row top ── */
+  .deco-17 .spine-decor::before {
+    content: '❧ ❧ ❧';
+    position: absolute; top: 36px; left: 0; right: 0;
+    text-align: center;
+    font-size: 1.1rem;
+    letter-spacing: 0.2em;
+    color: rgba(232,184,75,0.9);
+  }
+  .deco-17 .spine-decor::after {
+    content: '❦';
+    position: absolute; bottom: 26px; left: 0; right: 0;
+    text-align: center;
+    font-size: 2rem;
+    color: rgba(232,184,75,0.8);
+  }
+
+  /* ── 18. Triple horizontal rule set ── */
+  .deco-18 .spine-decor::before {
+    content: '';
+    position: absolute; left: 6%; right: 6%;
+    top: 38px;
+    height: 9px;
+    border-top: 2px solid rgba(232,184,75,0.9);
+    border-bottom: 2px solid rgba(232,184,75,0.9);
+    background: rgba(232,184,75,0.35);
+  }
+  .deco-18 .spine-decor::after {
+    content: '';
+    position: absolute; left: 6%; right: 6%;
+    bottom: 26px;
+    height: 9px;
+    border-top: 2px solid rgba(232,184,75,0.9);
+    border-bottom: 2px solid rgba(232,184,75,0.9);
+    background: rgba(232,184,75,0.35);
+  }
+
+  /* ── 19. Sunburst / star-of-lines ── */
+  .deco-19 .spine-decor::before {
+    content: '✸';
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    font-size: 5.5rem;
+    color: rgba(255,255,255,0.18);
+    line-height: 1;
+  }
+  .deco-19 .spine-decor::after {
+    content: '✦';
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    font-size: 1.4rem;
+    color: rgba(232,184,75,0.85);
+  }
+
+  /* ── 20. Art nouveau vine border sides ── */
+  .deco-20 .spine-decor::before {
+    content: '';
+    position: absolute; top: 32px; bottom: 22px; left: 8px; width: 5px;
+    background: linear-gradient(180deg,
+      transparent 0%, rgba(232,184,75,0.9) 15%,
+      rgba(232,184,75,0.6) 50%,
+      rgba(232,184,75,0.9) 85%, transparent 100%);
+    border-radius: 3px;
+  }
+  .deco-20 .spine-decor::after {
+    content: '';
+    position: absolute; top: 32px; bottom: 22px; right: 8px; width: 5px;
+    background: linear-gradient(180deg,
+      transparent 0%, rgba(232,184,75,0.9) 15%,
+      rgba(232,184,75,0.6) 50%,
+      rgba(232,184,75,0.9) 85%, transparent 100%);
+    border-radius: 3px;
+  }
+
+  /* ============================= */
+
+  .empty-msg {
+    color: rgba(196,129,58,0.38);
+    font-style: italic;
+    font-size: 0.88rem;
+    letter-spacing: 0.1em;
+    padding: 24px 12px 32px;
+    align-self: center;
+    white-space: nowrap;
+  }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(20, 8, 2, 0.75);
+    backdrop-filter: blur(3px);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal-card {
+    background: linear-gradient(160deg, #2a1406 0%, #1e0e03 100%);
+    border: 1.5px solid rgba(201,146,42,0.3);
+    border-radius: 6px;
+    padding: 32px 36px;
+    width: min(520px, 92vw);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.8);
+    animation: slideUp 0.22s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: var(--gold-light);
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(201,146,42,0.2);
+    letter-spacing: 0.03em;
+  }
+  .modal-label {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--wood-plank);
+    margin-bottom: 6px;
+  }
+  .modal-input, .modal-textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(160,97,42,0.45);
+    border-radius: 4px;
+    color: var(--cream);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 0.95rem;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 18px;
+  }
+  .modal-input:focus, .modal-textarea:focus { border-color: var(--gold); background: rgba(255,255,255,0.09); }
+  .modal-textarea { height: 160px; resize: vertical; line-height: 1.65; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 4px; }
+  .btn-save {
+    flex: 1;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--wood-plank) 100%);
+    color: var(--wood-dark);
+    font-family: 'Sarabun', sans-serif;
+    font-weight: 700;
+    font-size: 0.88rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 4px;
+    padding: 11px;
+    cursor: pointer;
+    transition: filter 0.2s;
+  }
+  .btn-save:hover { filter: brightness(1.12); }
+  .btn-delete {
+    background: rgba(180,30,30,0.18);
+    border: 1.5px solid rgba(180,30,30,0.4);
+    border-radius: 4px;
+    color: #e07070;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 0.85rem;
+    padding: 11px 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-delete:hover { background: rgba(180,30,30,0.35); }
+  .btn-close {
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 4px;
+    color: rgba(245,234,216,0.6);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 0.85rem;
+    padding: 11px 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-close:hover { background: rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+
+<header class="shelf-header">
+  <button class="back-btn" onclick="window.location.href='index.html'">← ห้องสมุด</button>
+  <div class="header-info">
+    <div class="header-sub">Bookshelf</div>
+    <div class="header-title" id="shelfTitle">📚 …</div>
+  </div>
+</header>
+
+<div class="add-book-bar">
+  <input id="title" placeholder="ชื่อหนังสือเล่มใหม่…" />
+  <button class="btn-add" onclick="addBook()">+ เพิ่มหนังสือ</button>
+</div>
+
+<div id="rows"></div>
+
+<!-- MODAL -->
+<div id="modal" class="modal-overlay" onclick="closeModal()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-title">📖 แก้ไขหนังสือ</div>
+    <label class="modal-label">ชื่อหนังสือ</label>
+    <input class="modal-input" id="editTitle" />
+    <label class="modal-label">บันทึก / เนื้อหา</label>
+    <textarea class="modal-textarea" id="editContent"></textarea>
+    <div class="modal-actions">
+      <button class="btn-save" onclick="save()">💾 บันทึก</button>
+      <button class="btn-delete" onclick="del()">✕ ลบ</button>
+      <button class="btn-close" onclick="closeModal()">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const params  = new URLSearchParams(window.location.search);
+const shelfId = params.get("id");
+let current   = null;
+
+const PALETTES = [
+  ['#c0392b','#7b241c'],['#e67e22','#935116'],['#27ae60','#1a7a43'],
+  ['#2980b9','#1a5276'],['#8e44ad','#6c2d8a'],['#16a085','#0d6b59'],
+  ['#d35400','#873600'],['#2c3e50','#17202a'],['#c0392b','#922b21'],
+  ['#1abc9c','#148f77'],['#9b59b6','#76448a'],['#f39c12','#9a7d0a'],
+  ['#34495e','#1c2833'],['#e74c3c','#922b21'],['#1e8bc3','#154360'],
+  ['#019875','#01664f'],['#663399','#441166'],['#cc6600','#994400'],
+];
+
+const DECO_COUNT = 20;
+
+function getSpineStyle(idx) {
+  const [top, bot] = PALETTES[idx % PALETTES.length];
+  return `background: linear-gradient(175deg, ${top} 0%, ${bot} 100%);`;
+}
+
+function getDecoClass(idx) {
+  return `deco-${((idx * 7 + 3) % DECO_COUNT) + 1}`;
+}
+
+async function loadBooks() {
+  const res   = await fetch(`http://127.0.0.1:3000/shelves/${shelfId}/books`);
+  const books = await res.json();
+
+  try {
+    const sRes    = await fetch(`http://127.0.0.1:3000/shelves`);
+    const shelves = await sRes.json();
+    const shelf   = shelves.find(s => String(s.id) === String(shelfId));
+    if (shelf) document.getElementById("shelfTitle").textContent = "📚 " + shelf.name;
+  } catch(e) {}
+
+  const container = document.getElementById("rows");
+  container.innerHTML = "";
+
+  if (books.length === 0) {
+    container.innerHTML = '<div style="padding:40px; color:rgba(196,129,58,0.4); font-style:italic; letter-spacing:0.1em;">— ยังไม่มีหนังสือในชั้นนี้ —</div>';
+    return;
+  }
+
+  for (let i = 0; i < books.length; i += 10) {
+    const chunk = books.slice(i, i + 10);
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "shelf-row-wrapper";
+
+    const track = document.createElement("div");
+    track.className = "shelf-scroll-track";
+
+    const shelfCase = document.createElement("div");
+    shelfCase.className = "shelf-case";
+
+    const leftPanel = document.createElement("div");
+    leftPanel.className = "end-panel";
+    const rightPanel = document.createElement("div");
+    rightPanel.className = "end-panel right";
+
+    shelfCase.appendChild(leftPanel);
+
+    chunk.forEach((b, bi) => {
+      const globalIdx = i + bi;
+      const spine = document.createElement("div");
+      spine.className = `book-spine ${getDecoClass(globalIdx)}`;
+      spine.setAttribute("style", getSpineStyle(globalIdx));
+      spine.title = b.title;
+      spine.onclick = () => openBook(b);
+
+      spine.innerHTML = `
+        <div class="spine-band"></div>
+        <div class="spine-decor"></div>
+        <div class="spine-title">${b.title}</div>
+        <div class="spine-band-bottom"></div>
+      `;
+      shelfCase.appendChild(spine);
+    });
+
+    shelfCase.appendChild(rightPanel);
+    track.appendChild(shelfCase);
+
+    const plank = document.createElement("div");
+    plank.className = "shelf-plank";
+
+    wrapper.appendChild(track);
+    wrapper.appendChild(plank);
+    container.appendChild(wrapper);
+  }
+}
+
+async function addBook() {
+  const title = document.getElementById("title").value.trim();
+  if (!title) return;
+  await fetch(`http://127.0.0.1:3000/shelves/${shelfId}/books`, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ title })
+  });
+  document.getElementById("title").value = "";
+  loadBooks();
+}
+
+function openBook(book) {
+  current = book;
+  document.getElementById("editTitle").value = book.title;
+  document.getElementById("editContent").value = book.content || "";
+  document.getElementById("modal").classList.add("open");
+}
+
+async function save() {
+  await fetch(`http://127.0.0.1:3000/shelves/${shelfId}/books/${current.id}`, {
+    method: "PUT",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      title:   document.getElementById("editTitle").value,
+      content: document.getElementById("editContent").value
+    })
+  });
+  closeModal();
+  loadBooks();
+}
+
+async function del() {
+  await fetch(`http://127.0.0.1:3000/shelves/${shelfId}/books/${current.id}`, { method: "DELETE" });
+  closeModal();
+  loadBooks();
+}
+
+function closeModal() {
+  document.getElementById("modal").classList.remove("open");
+}
+
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+loadBooks();
+</script>
+</body>
+</html>
