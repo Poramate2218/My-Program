@@ -13,20 +13,18 @@ app.use(express.json());
 app.use(cookieParser());
 
 // ─────────────────────────────────────────
-//  CONFIG — เปลี่ยน username / password ที่นี่
+// 🔐 FIXED USER (ของคุณ)
 // ─────────────────────────────────────────
 const USERS = [
-  { username: "admin", password: "1234" },
-  // เพิ่ม user อื่นได้ตรงนี้:
-  // { username: "alice", password: "mypassword" },
+  { username: "User-newplayer", password: "doung191" }
 ];
 
-// Session store (in-memory)
+// session
 const sessions    = new Map();
-const SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 7 วัน
+const SESSION_TTL = 7 * 24 * 60 * 60 * 1000;
 
 // ─────────────────────────────────────────
-//  AUTH HELPERS
+// AUTH FUNCTIONS
 // ─────────────────────────────────────────
 function createSession(username) {
   const token   = crypto.randomBytes(32).toString("hex");
@@ -39,7 +37,10 @@ function getSession(token) {
   if (!token) return null;
   const s = sessions.get(token);
   if (!s) return null;
-  if (Date.now() > s.expires) { sessions.delete(token); return null; }
+  if (Date.now() > s.expires) {
+    sessions.delete(token);
+    return null;
+  }
   return s;
 }
 
@@ -54,21 +55,25 @@ function requireAuthApi(req, res, next) {
 }
 
 // ─────────────────────────────────────────
-//  AUTH ROUTES
+// AUTH ROUTES
 // ─────────────────────────────────────────
 app.post("/auth/login", (req, res) => {
   const { username, password } = req.body || {};
   const user = USERS.find(u => u.username === username && u.password === password);
-  if (!user) return res.status(401).json({ message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
-  const token = createSession(username);
-  res.cookie("session", token, { httpOnly: true, sameSite: "lax", maxAge: SESSION_TTL });
-  res.json({ ok: true, username });
-});
 
-app.get("/auth/me", (req, res) => {
-  const s = getSession(req.cookies?.session);
-  if (s) return res.json({ username: s.username });
-  res.status(401).json({ message: "Not authenticated" });
+  if (!user) {
+    return res.status(401).json({ message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
+  }
+
+  const token = createSession(username);
+
+  res.cookie("session", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: SESSION_TTL
+  });
+
+  res.json({ ok: true });
 });
 
 app.post("/auth/logout", (req, res) => {
@@ -79,40 +84,46 @@ app.post("/auth/logout", (req, res) => {
 });
 
 // ─────────────────────────────────────────
-//  HTML ROUTES
-//  *** ไม่ใช้ express.static ***
-//  ทุกหน้าผ่าน Express เพื่อให้ auth ทำงานได้
+// ROUTING
 // ─────────────────────────────────────────
 
-// หน้า login — เข้าได้โดยไม่ต้อง auth
+// เข้าเว็บ → เช็ค login ก่อน
+app.get("/", (req, res) => {
+  if (getSession(req.cookies?.session)) {
+    return res.redirect("/index.html");
+  }
+  res.redirect("/login.html");
+});
+
+// login page
 app.get("/login.html", (req, res) => {
-  if (getSession(req.cookies?.session)) return res.redirect("/");
+  if (getSession(req.cookies?.session)) {
+    return res.redirect("/index.html");
+  }
   res.sendFile(path.join(__dirname, "login.html"));
 });
 
-// "/" → redirect ไป login ถ้ายังไม่ได้ login
-app.get("/", requireAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
-
-// index.html โดยตรง
+// main page
 app.get("/index.html", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// shelf.html
+// shelf page
 app.get("/shelf.html", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "shelf.html"));
 });
 
 // ─────────────────────────────────────────
-//  DATA
+// DATA
 // ─────────────────────────────────────────
 const DATA_FILE = path.join(__dirname, "data.json");
 
 function loadData() {
-  try { return JSON.parse(fs.readFileSync(DATA_FILE)); }
-  catch { return { shelves: [] }; }
+  try {
+    return JSON.parse(fs.readFileSync(DATA_FILE));
+  } catch {
+    return { shelves: [] };
+  }
 }
 
 function saveData(data) {
@@ -120,76 +131,102 @@ function saveData(data) {
 }
 
 // ─────────────────────────────────────────
-//  API ROUTES (ทุก route ต้อง auth)
+// API (ต้อง login ก่อน)
 // ─────────────────────────────────────────
 app.use("/shelves", requireAuthApi);
 
+// shelves
 app.get("/shelves", (req, res) => {
   res.json(loadData().shelves);
 });
 
 app.post("/shelves", (req, res) => {
-  const data     = loadData();
-  const newShelf = { id: Date.now(), name: req.body.name, books: [] };
+  const data = loadData();
+
+  const newShelf = {
+    id: Date.now(),
+    name: req.body.name,
+    books: []
+  };
+
   data.shelves.push(newShelf);
   saveData(data);
+
   res.json(newShelf);
 });
 
 app.put("/shelves/:id", (req, res) => {
-  const data  = loadData();
+  const data = loadData();
   const shelf = data.shelves.find(s => s.id == req.params.id);
+
   if (!shelf) return res.status(404).json({ message: "Not found" });
+
   shelf.name = req.body.name;
   saveData(data);
   res.json(shelf);
 });
 
 app.delete("/shelves/:id", (req, res) => {
-  const data   = loadData();
+  const data = loadData();
   data.shelves = data.shelves.filter(s => s.id != req.params.id);
   saveData(data);
   res.json({ success: true });
 });
 
+// books
 app.get("/shelves/:id/books", (req, res) => {
-  const data  = loadData();
+  const data = loadData();
   const shelf = data.shelves.find(s => s.id == req.params.id);
   res.json(shelf ? shelf.books : []);
 });
 
 app.post("/shelves/:id/books", (req, res) => {
-  const data  = loadData();
+  const data = loadData();
   const shelf = data.shelves.find(s => s.id == req.params.id);
+
   if (!shelf) return res.status(404).json({ message: "Shelf not found" });
-  const newBook = { id: Date.now(), title: req.body.title, content: "" };
+
+  const newBook = {
+    id: Date.now(),
+    title: req.body.title,
+    content: ""
+  };
+
   shelf.books.push(newBook);
   saveData(data);
+
   res.json(newBook);
 });
 
 app.put("/shelves/:sid/books/:bid", (req, res) => {
-  const data  = loadData();
+  const data = loadData();
   const shelf = data.shelves.find(s => s.id == req.params.sid);
-  const book  = shelf?.books.find(b => b.id == req.params.bid);
+  const book = shelf?.books.find(b => b.id == req.params.bid);
+
   if (!book) return res.status(404).json({ message: "Not found" });
-  book.title   = req.body.title;
+
+  book.title = req.body.title;
   book.content = req.body.content;
+
   saveData(data);
   res.json(book);
 });
 
 app.delete("/shelves/:sid/books/:bid", (req, res) => {
-  const data  = loadData();
+  const data = loadData();
   const shelf = data.shelves.find(s => s.id == req.params.sid);
-  if (shelf) shelf.books = shelf.books.filter(b => b.id != req.params.bid);
+
+  if (shelf) {
+    shelf.books = shelf.books.filter(b => b.id != req.params.bid);
+  }
+
   saveData(data);
   res.json({ success: true });
 });
 
 // ─────────────────────────────────────────
-//  START
+// START
 // ─────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`📚 Library running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
