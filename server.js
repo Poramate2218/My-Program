@@ -16,7 +16,7 @@ app.use(cookieParser());
 // 🔐 FIXED USER (ของคุณ)
 // ─────────────────────────────────────────
 const USERS = [
-  { username: "User-newplayer", password: "doung191" }
+  { username: "newplayer", password: "doung191" }
 ];
 
 // session

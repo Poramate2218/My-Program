@@ -44,7 +44,8 @@
     border-bottom: 4px solid var(--gold);
     padding: 28px 40px 22px;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
+    justify-content: space-between;
     position: relative;
     z-index: 10;
   }
@@ -69,6 +70,27 @@
     text-transform: uppercase;
     color: var(--wood-plank);
     margin-bottom: 4px;
+  }
+
+  .btn-logout {
+    background: transparent;
+    border: 1.5px solid rgba(201,146,42,0.35);
+    border-radius: 4px;
+    color: var(--gold);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+  .btn-logout:hover {
+    background: rgba(201,146,42,0.12);
+    border-color: var(--gold-light);
+    color: var(--gold-light);
   }
 
   /* ===== ADD SHELF BAR ===== */
@@ -141,7 +163,6 @@
       rgba(0,0,0,0.055) 24px, rgba(0,0,0,0.055) 25px);
     pointer-events: none;
   }
-  /* wall shadow beneath each shelf */
   .shelf-unit::after {
     content: '';
     position: absolute;
@@ -260,11 +281,13 @@
     font-style: italic;
   }
 </style>
+
 <header class="library-header">
   <div>
     <div class="header-subtitle">Personal Collection</div>
     <div class="header-title">📚 My Library</div>
   </div>
+  <button class="btn-logout" onclick="logout()">ออกจากระบบ ↩</button>
 </header>
 
 <div class="add-shelf-bar">
@@ -313,8 +336,8 @@ function layoutPositions(count, canvasW) {
 }
 
 async function loadShelves() {
-  // เปลี่ยนเป็น relative URL
-  const res     = await fetch("/shelves");
+  const res = await fetch("/shelves");
+  if (res.status === 401) { window.location.href = "/login.html"; return; }
   const shelves = await res.json();
 
   const canvas  = document.getElementById("shelf-canvas");
@@ -420,6 +443,11 @@ async function editShelf(id) {
 async function deleteShelf(id) {
   await fetch(`/shelves/${id}`, { method: "DELETE" });
   loadShelves();
+}
+
+async function logout() {
+  await fetch("/auth/logout", { method: "POST" });
+  window.location.href = "/login.html";
 }
 
 loadShelves();
