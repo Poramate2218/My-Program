@@ -1,8 +1,8 @@
-const express    = require("express");
-const cors       = require("cors");
-const fs         = require("fs");
-const path       = require("path");
-const crypto     = require("crypto");
+const express      = require("express");
+const cors         = require("cors");
+const fs           = require("fs");
+const path         = require("path");
+const crypto       = require("crypto");
 const cookieParser = require("cookie-parser");
 
 const app  = express();
@@ -21,9 +21,8 @@ const USERS = [
   // { username: "alice", password: "mypassword" },
 ];
 
-// Session store (in-memory, เพียงพอสำหรับใช้งานส่วนตัว)
-// หากต้องการ persistence ข้ามรีสตาร์ท ให้เปลี่ยนเป็น file/DB
-const sessions = new Map();
+// Session store (in-memory)
+const sessions    = new Map();
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 7 วัน
 
 // ─────────────────────────────────────────
@@ -40,52 +39,38 @@ function getSession(token) {
   if (!token) return null;
   const s = sessions.get(token);
   if (!s) return null;
-  if (Date.now() > s.expires) {
-    sessions.delete(token);
-    return null;
-  }
+  if (Date.now() > s.expires) { sessions.delete(token); return null; }
   return s;
 }
 
 function requireAuth(req, res, next) {
-  const token = req.cookies?.session;
-  if (getSession(token)) return next();
-  // API requests → 401 JSON
-  if (req.path.startsWith("/shelves")) {
-    return res.status(401).json({ message: "กรุณาเข้าสู่ระบบก่อน" });
-  }
-  // Browser requests → redirect to login
+  if (getSession(req.cookies?.session)) return next();
   res.redirect("/login.html");
 }
 
-// ─────────────────────────────────────────
-//  AUTH ROUTES (ไม่ต้อง auth)
-// ─────────────────────────────────────────
+function requireAuthApi(req, res, next) {
+  if (getSession(req.cookies?.session)) return next();
+  res.status(401).json({ message: "กรุณาเข้าสู่ระบบก่อน" });
+}
 
-// POST /auth/login
+// ─────────────────────────────────────────
+//  AUTH ROUTES
+// ─────────────────────────────────────────
 app.post("/auth/login", (req, res) => {
   const { username, password } = req.body || {};
   const user = USERS.find(u => u.username === username && u.password === password);
-  if (!user) {
-    return res.status(401).json({ message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
-  }
+  if (!user) return res.status(401).json({ message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
   const token = createSession(username);
-  res.cookie("session", token, {
-    httpOnly: true,
-    sameSite: "lax",
-    maxAge:   SESSION_TTL,
-  });
+  res.cookie("session", token, { httpOnly: true, sameSite: "lax", maxAge: SESSION_TTL });
   res.json({ ok: true, username });
 });
 
-// GET /auth/me — ตรวจสอบว่า login อยู่หรือเปล่า
 app.get("/auth/me", (req, res) => {
   const s = getSession(req.cookies?.session);
   if (s) return res.json({ username: s.username });
   res.status(401).json({ message: "Not authenticated" });
 });
 
-// POST /auth/logout
 app.post("/auth/logout", (req, res) => {
   const token = req.cookies?.session;
   if (token) sessions.delete(token);
@@ -94,35 +79,36 @@ app.post("/auth/logout", (req, res) => {
 });
 
 // ─────────────────────────────────────────
-//  STATIC FILES
-//  login.html เข้าถึงได้โดยไม่ต้อง login
-//  หน้าอื่น ๆ ต้องผ่าน requireAuth
+//  HTML ROUTES
+//  *** ไม่ใช้ express.static ***
+//  ทุกหน้าผ่าน Express เพื่อให้ auth ทำงานได้
 // ─────────────────────────────────────────
 
-// เส้นทางสาธารณะ (login page)
+// หน้า login — เข้าได้โดยไม่ต้อง auth
 app.get("/login.html", (req, res) => {
+  if (getSession(req.cookies?.session)) return res.redirect("/");
   res.sendFile(path.join(__dirname, "login.html"));
 });
 
-// "/" ต้อง auth → index.html
+// "/" → redirect ไป login ถ้ายังไม่ได้ login
 app.get("/", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// shelf.html ต้อง auth
+// index.html โดยตรง
+app.get("/index.html", requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// shelf.html
 app.get("/shelf.html", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "shelf.html"));
 });
 
-// Static assets (CSS, JS, fonts ที่ฝังใน HTML ไม่ต้อง auth)
-app.use(express.static(path.join(__dirname), {
-  index: false, // ป้องกัน auto-serve index.html โดยไม่ผ่าน auth
-}));
-
 // ─────────────────────────────────────────
 //  DATA
 // ─────────────────────────────────────────
-const DATA_FILE = "data.json";
+const DATA_FILE = path.join(__dirname, "data.json");
 
 function loadData() {
   try { return JSON.parse(fs.readFileSync(DATA_FILE)); }
@@ -136,46 +122,42 @@ function saveData(data) {
 // ─────────────────────────────────────────
 //  API ROUTES (ทุก route ต้อง auth)
 // ─────────────────────────────────────────
-app.use("/shelves", requireAuth);
+app.use("/shelves", requireAuthApi);
 
-// GET shelves
 app.get("/shelves", (req, res) => {
   res.json(loadData().shelves);
 });
 
-// ADD shelf
 app.post("/shelves", (req, res) => {
-  const data = loadData();
+  const data     = loadData();
   const newShelf = { id: Date.now(), name: req.body.name, books: [] };
   data.shelves.push(newShelf);
   saveData(data);
   res.json(newShelf);
 });
 
-// UPDATE shelf
 app.put("/shelves/:id", (req, res) => {
   const data  = loadData();
   const shelf = data.shelves.find(s => s.id == req.params.id);
-  if (shelf) { shelf.name = req.body.name; saveData(data); res.json(shelf); }
-  else res.status(404).json({ message: "Not found" });
+  if (!shelf) return res.status(404).json({ message: "Not found" });
+  shelf.name = req.body.name;
+  saveData(data);
+  res.json(shelf);
 });
 
-// DELETE shelf
 app.delete("/shelves/:id", (req, res) => {
-  let data = loadData();
+  const data   = loadData();
   data.shelves = data.shelves.filter(s => s.id != req.params.id);
   saveData(data);
   res.json({ success: true });
 });
 
-// GET books
 app.get("/shelves/:id/books", (req, res) => {
   const data  = loadData();
   const shelf = data.shelves.find(s => s.id == req.params.id);
   res.json(shelf ? shelf.books : []);
 });
 
-// ADD book
 app.post("/shelves/:id/books", (req, res) => {
   const data  = loadData();
   const shelf = data.shelves.find(s => s.id == req.params.id);
@@ -186,27 +168,22 @@ app.post("/shelves/:id/books", (req, res) => {
   res.json(newBook);
 });
 
-// UPDATE book
 app.put("/shelves/:sid/books/:bid", (req, res) => {
   const data  = loadData();
   const shelf = data.shelves.find(s => s.id == req.params.sid);
   const book  = shelf?.books.find(b => b.id == req.params.bid);
-  if (book) {
-    book.title   = req.body.title;
-    book.content = req.body.content;
-    saveData(data);
-    res.json(book);
-  } else res.status(404).json({ message: "Not found" });
+  if (!book) return res.status(404).json({ message: "Not found" });
+  book.title   = req.body.title;
+  book.content = req.body.content;
+  saveData(data);
+  res.json(book);
 });
 
-// DELETE book
 app.delete("/shelves/:sid/books/:bid", (req, res) => {
   const data  = loadData();
   const shelf = data.shelves.find(s => s.id == req.params.sid);
-  if (shelf) {
-    shelf.books = shelf.books.filter(b => b.id != req.params.bid);
-    saveData(data);
-  }
+  if (shelf) shelf.books = shelf.books.filter(b => b.id != req.params.bid);
+  saveData(data);
   res.json({ success: true });
 });
 
@@ -214,6 +191,5 @@ app.delete("/shelves/:sid/books/:bid", (req, res) => {
 //  START
 // ─────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`📚 Library server running on http://localhost:${PORT}`);
-  console.log(`   Login with: ${USERS.map(u => u.username).join(", ")}`);
+  console.log(`📚 Library running on http://localhost:${PORT}`);
 });
