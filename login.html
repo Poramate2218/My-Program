@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 My Library — เข้าสู่ระบบ</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --wood-dark:   #3d1f0d;
+    --wood-mid:    #6b3a1f;
+    --wood-light:  #a0612a;
+    --wood-plank:  #c4813a;
+    --wood-grain:  #8b4f1e;
+    --cream:       #f5ead8;
+    --parchment:   #ede0c4;
+    --gold:        #c9922a;
+    --gold-light:  #e8b84b;
+    --shadow:      rgba(30, 10, 0, 0.6);
+  }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background-color: var(--wood-dark);
+    background-image:
+      repeating-linear-gradient(92deg, transparent 0px, transparent 18px,
+        rgba(255,255,255,0.012) 18px, rgba(255,255,255,0.012) 19px),
+      repeating-linear-gradient(180deg, transparent 0px, transparent 60px,
+        rgba(0,0,0,0.08) 60px, rgba(0,0,0,0.08) 61px);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Ambient glow */
+  body::before {
+    content: '';
+    position: fixed; top: -30%; left: 50%;
+    width: 700px; height: 500px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse, rgba(201,146,42,0.12) 0%, transparent 68%);
+    pointer-events: none;
+  }
+
+  /* Decorative book spines on sides */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      linear-gradient(90deg, rgba(61,31,13,0.92) 0%, transparent 18%),
+      linear-gradient(270deg, rgba(61,31,13,0.92) 0%, transparent 18%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page-wrap {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    width: 100%;
+  }
+
+  /* ===== HEADER LOGO ===== */
+  .logo-block {
+    text-align: center;
+    animation: fadeDown 0.7s ease both;
+  }
+  .logo-icon {
+    font-size: 3.6rem;
+    line-height: 1;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 4px 16px rgba(201,146,42,0.4));
+    animation: float 3.5s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .logo-sub {
+    font-size: 0.7rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--wood-plank);
+    margin-bottom: 6px;
+  }
+  .logo-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 900;
+    color: var(--gold-light);
+    letter-spacing: 0.05em;
+    text-shadow: 2px 4px 12px rgba(0,0,0,0.7);
+    line-height: 1;
+  }
+
+  /* ===== CARD ===== */
+  .card {
+    background: linear-gradient(160deg, #2a1406 0%, #1e0e03 100%);
+    border: 1.5px solid rgba(201,146,42,0.28);
+    border-radius: 6px;
+    padding: 40px 44px;
+    width: min(440px, 100%);
+    box-shadow:
+      0 32px 80px rgba(0,0,0,0.8),
+      0 0 0 1px rgba(255,255,255,0.04) inset,
+      0 1px 0 rgba(232,184,75,0.1) inset;
+    animation: fadeUp 0.7s 0.12s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle texture on card */
+  .card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, transparent 0px, transparent 28px,
+      rgba(0,0,0,0.04) 28px, rgba(0,0,0,0.04) 29px);
+    pointer-events: none;
+  }
+
+  /* Gold ornament top */
+  .card-ornament {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(201,146,42,0.2);
+  }
+  .ornament-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,146,42,0.5), transparent);
+  }
+  .ornament-icon {
+    font-size: 1.1rem;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: var(--gold-light);
+    letter-spacing: 0.04em;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  /* ===== FORM ===== */
+  .field {
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .field-label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--wood-plank);
+    margin-bottom: 7px;
+  }
+  .field-input {
+    width: 100%;
+    background: rgba(255,255,255,0.055);
+    border: 1.5px solid rgba(160,97,42,0.4);
+    border-radius: 4px;
+    color: var(--cream);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 1rem;
+    padding: 12px 16px;
+    outline: none;
+    transition: border-color 0.22s, background 0.22s, box-shadow 0.22s;
+    position: relative;
+    z-index: 1;
+  }
+  .field-input::placeholder { color: rgba(196,129,58,0.38); }
+  .field-input:focus {
+    border-color: var(--gold);
+    background: rgba(255,255,255,0.09);
+    box-shadow: 0 0 0 3px rgba(201,146,42,0.12);
+  }
+
+  /* Error state */
+  .field-input.error { border-color: rgba(220,60,60,0.7); }
+
+  /* ===== ERROR MESSAGE ===== */
+  .error-msg {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: rgba(180,30,30,0.16);
+    border: 1px solid rgba(180,30,30,0.35);
+    border-radius: 4px;
+    color: #e07070;
+    font-size: 0.85rem;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    animation: shake 0.38s ease;
+  }
+  .error-msg.visible { display: flex; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    22%       { transform: translateX(-6px); }
+    55%       { transform: translateX(6px); }
+    77%       { transform: translateX(-4px); }
+  }
+
+  /* ===== SUBMIT BTN ===== */
+  .btn-login {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--wood-plank) 100%);
+    color: var(--wood-dark);
+    font-family: 'Sarabun', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 4px;
+    padding: 13px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: filter 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-login::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .btn-login:hover {
+    filter: brightness(1.14);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  .btn-login:active { transform: translateY(0); filter: brightness(0.96); }
+  .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  /* Spinner inside button */
+  .btn-login .spinner {
+    display: none;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(61,31,13,0.4);
+    border-top-color: var(--wood-dark);
+    border-radius: 50%;
+    animation: spin 0.65s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  .btn-login.loading .spinner { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== FOOTER NOTE ===== */
+  .card-footer {
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(201,146,42,0.15);
+    text-align: center;
+    font-size: 0.78rem;
+    color: rgba(196,129,58,0.5);
+    letter-spacing: 0.05em;
+  }
+  .card-footer strong { color: rgba(232,184,75,0.65); }
+
+  /* ===== ANIMS ===== */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Decorative corner marks */
+  .corner { position: absolute; width: 18px; height: 18px; }
+  .corner-tl { top: 14px; left: 14px; border-top: 2px solid rgba(201,146,42,0.4); border-left: 2px solid rgba(201,146,42,0.4); }
+  .corner-tr { top: 14px; right: 14px; border-top: 2px solid rgba(201,146,42,0.4); border-right: 2px solid rgba(201,146,42,0.4); }
+  .corner-bl { bottom: 14px; left: 14px; border-bottom: 2px solid rgba(201,146,42,0.4); border-left: 2px solid rgba(201,146,42,0.4); }
+  .corner-br { bottom: 14px; right: 14px; border-bottom: 2px solid rgba(201,146,42,0.4); border-right: 2px solid rgba(201,146,42,0.4); }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Logo -->
+  <div class="logo-block">
+    <div class="logo-icon">📚</div>
+    <div class="logo-sub">Personal Collection</div>
+    <div class="logo-title">My Library</div>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+
+    <div class="card-ornament">
+      <div class="ornament-line"></div>
+      <div class="ornament-icon">◈</div>
+      <div class="ornament-line"></div>
+    </div>
+
+    <div class="card-title">เข้าสู่ห้องสมุดของคุณ</div>
+
+    <!-- Error -->
+    <div class="error-msg" id="errorMsg">
+      <span>⚠</span>
+      <span id="errorText">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</span>
+    </div>
+
+    <!-- Form -->
+    <div class="field">
+      <label class="field-label" for="username">ชื่อผู้ใช้</label>
+      <input class="field-input" type="text" id="username" placeholder="กรอกชื่อผู้ใช้…" autocomplete="username" />
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="password">รหัสผ่าน</label>
+      <input class="field-input" type="password" id="password" placeholder="กรอกรหัสผ่าน…" autocomplete="current-password" />
+    </div>
+
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">
+      <span class="spinner"></span>
+      เข้าสู่ระบบ
+    </button>
+
+    <div class="card-footer">
+      ห้องสมุดส่วนตัว · <strong>Protected</strong>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Enter key submits
+  document.addEventListener("keydown", e => {
+    if (e.key === "Enter") doLogin();
+  });
+
+  async function doLogin() {
+    const btn      = document.getElementById("loginBtn");
+    const errBox   = document.getElementById("errorMsg");
+    const errText  = document.getElementById("errorText");
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!username || !password) {
+      showError("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
+      return;
+    }
+
+    // Loading state
+    btn.classList.add("loading");
+    btn.disabled = true;
+    errBox.classList.remove("visible");
+    clearErrors();
+
+    try {
+      const res  = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+        credentials: "include"
+      });
+
+      if (res.ok) {
+        // Fade out and redirect
+        document.querySelector(".page-wrap").style.transition = "opacity 0.4s";
+        document.querySelector(".page-wrap").style.opacity = "0";
+        setTimeout(() => { window.location.href = "/"; }, 380);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showError(data.message || "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+        document.getElementById("password").value = "";
+        document.getElementById("username").classList.add("error");
+        document.getElementById("password").classList.add("error");
+      }
+    } catch (err) {
+      showError("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่");
+    } finally {
+      btn.classList.remove("loading");
+      btn.disabled = false;
+    }
+  }
+
+  function showError(msg) {
+    const errBox  = document.getElementById("errorMsg");
+    const errText = document.getElementById("errorText");
+    errText.textContent = msg;
+    errBox.classList.remove("visible");
+    void errBox.offsetWidth; // reflow for re-animation
+    errBox.classList.add("visible");
+  }
+
+  function clearErrors() {
+    document.getElementById("username").classList.remove("error");
+    document.getElementById("password").classList.remove("error");
+  }
+
+  // Clear error styling on input
+  document.getElementById("username").addEventListener("input", clearErrors);
+  document.getElementById("password").addEventListener("input", clearErrors);
+
+  // Redirect if already logged in
+  fetch("/auth/me", { credentials: "include" })
+    .then(r => { if (r.ok) window.location.href = "/"; })
+    .catch(() => {});
+</script>
+</body>
+</html>
