@@ -272,7 +272,6 @@
 
   /* ============================
      SPINE DECOR LAYER
-     Boosted opacity & size for all 20 styles
   ============================ */
   .spine-decor {
     position: absolute;
@@ -282,7 +281,6 @@
     overflow: hidden;
   }
 
-  /* ── 1. Double gold rule lines top & bottom ── */
   .deco-1 .spine-decor::before,
   .deco-1 .spine-decor::after {
     content: '';
@@ -292,7 +290,6 @@
   .deco-1 .spine-decor::before { top: 36px; }
   .deco-1 .spine-decor::after  { bottom: 28px; }
 
-  /* ── 2. Diamond ornament centre ── */
   .deco-2 .spine-decor::before {
     content: '◆';
     position: absolute; top: 50%; left: 50%;
@@ -310,7 +307,6 @@
     line-height: 1;
   }
 
-  /* ── 3. Dotted vertical borders left & right ── */
   .deco-3 .spine-decor::before {
     content: '';
     position: absolute; top: 32px; bottom: 24px; left: 12px; width: 3px;
@@ -326,7 +322,6 @@
       transparent 5px, transparent 11px);
   }
 
-  /* ── 4. Fleur-de-lis trio ── */
   .deco-4 .spine-decor::before {
     content: '⚜ ⚜ ⚜';
     position: absolute; bottom: 32px; left: 0; right: 0;
@@ -343,7 +338,6 @@
     color: rgba(232,184,75,0.95);
   }
 
-  /* ── 5. Art-deco radiating rays from top ── */
   .deco-5 .spine-decor::before {
     content: '';
     position: absolute; top: 0; left: 50%; width: 0; height: 0;
@@ -361,7 +355,6 @@
     transform: translateX(-50%);
   }
 
-  /* ── 6. Corner bracket marks ── */
   .deco-6 .spine-decor::before {
     content: '';
     position: absolute;
@@ -379,7 +372,6 @@
     border-right: 3px solid rgba(232,184,75,0.9);
   }
 
-  /* ── 7. Circular medallion ring ── */
   .deco-7 .spine-decor::before {
     content: '';
     position: absolute; top: 50%; left: 50%;
@@ -397,7 +389,6 @@
     color: rgba(232,184,75,0.75);
   }
 
-  /* ── 8. Chevron / zigzag stripe band in middle ── */
   .deco-8 .spine-decor::before {
     content: '';
     position: absolute; top: 50%; left: 0; right: 0; height: 30px;
@@ -409,7 +400,6 @@
     );
   }
 
-  /* ── 9. Scattered five-point stars ── */
   .deco-9 .spine-decor::before {
     content: '★';
     position: absolute; top: 38px; left: 0; right: 0;
@@ -426,7 +416,6 @@
     color: rgba(232,184,75,0.7);
   }
 
-  /* ── 10. Greek-key top border ── */
   .deco-10 .spine-decor::before {
     content: '';
     position: absolute; top: 28px; left: 8%; right: 8%; height: 12px;
@@ -450,7 +439,6 @@
     );
   }
 
-  /* ── 11. Inner frame border ── */
   .deco-11 .spine-decor::before {
     content: '';
     position: absolute;
@@ -466,7 +454,6 @@
     border-radius: 1px;
   }
 
-  /* ── 12. Herringbone texture band ── */
   .deco-12 .spine-decor::before {
     content: '';
     position: absolute; top: 50%; left: 0; right: 0; height: 42px;
@@ -476,7 +463,6 @@
       repeating-linear-gradient(-45deg, rgba(255,255,255,0.2) 0px, rgba(255,255,255,0.2) 4px, transparent 4px, transparent 10px);
   }
 
-  /* ── 13. Classic ribbon bookmark ── */
   .deco-13 .spine-decor::before {
     content: '';
     position: absolute; top: 0; right: 26px; width: 18px; height: 66px;
@@ -484,7 +470,6 @@
     clip-path: polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%);
   }
 
-  /* ── 14. Cross / plus ornament ── */
   .deco-14 .spine-decor::before {
     content: '✛';
     position: absolute; top: 38px; left: 0; right: 0;
@@ -500,7 +485,6 @@
     color: rgba(232,184,75,0.65);
   }
 
-  /* ── 15. Diagonal stripe texture ── */
   .deco-15 .spine-decor::before {
     content: '';
     position: absolute; inset: 0;
@@ -511,7 +495,6 @@
     );
   }
 
-  /* ── 16. Polka dots ── */
   .deco-16 .spine-decor::before {
     content: '';
     position: absolute; inset: 0;
@@ -520,7 +503,6 @@
     background-position: 10px 10px;
   }
 
-  /* ── 17. Vine / leaf row top ── */
   .deco-17 .spine-decor::before {
     content: '❧ ❧ ❧';
     position: absolute; top: 36px; left: 0; right: 0;
@@ -537,7 +519,6 @@
     color: rgba(232,184,75,0.8);
   }
 
-  /* ── 18. Triple horizontal rule set ── */
   .deco-18 .spine-decor::before {
     content: '';
     position: absolute; left: 6%; right: 6%;
@@ -557,7 +538,6 @@
     background: rgba(232,184,75,0.35);
   }
 
-  /* ── 19. Sunburst / star-of-lines ── */
   .deco-19 .spine-decor::before {
     content: '✸';
     position: absolute; top: 50%; left: 50%;
@@ -574,7 +554,6 @@
     color: rgba(232,184,75,0.85);
   }
 
-  /* ── 20. Art nouveau vine border sides ── */
   .deco-20 .spine-decor::before {
     content: '';
     position: absolute; top: 32px; bottom: 22px; left: 8px; width: 5px;
@@ -594,8 +573,6 @@
     border-radius: 3px;
   }
 
-  /* ============================= */
-
   .empty-msg {
     color: rgba(196,129,58,0.38);
     font-style: italic;
@@ -606,103 +583,146 @@
     white-space: nowrap;
   }
 
-  /* ===== MODAL ===== */
+  /* ===== MODAL — ขยายใหญ่ขึ้นมาก ===== */
   .modal-overlay {
     display: none;
     position: fixed; inset: 0;
-    background: rgba(20, 8, 2, 0.75);
-    backdrop-filter: blur(3px);
+    background: rgba(20, 8, 2, 0.82);
+    backdrop-filter: blur(4px);
     justify-content: center;
     align-items: center;
     z-index: 100;
+    padding: 20px;
   }
   .modal-overlay.open { display: flex; }
 
   .modal-card {
     background: linear-gradient(160deg, #2a1406 0%, #1e0e03 100%);
-    border: 1.5px solid rgba(201,146,42,0.3);
-    border-radius: 6px;
-    padding: 32px 36px;
-    width: min(520px, 92vw);
-    box-shadow: 0 24px 64px rgba(0,0,0,0.8);
-    animation: slideUp 0.22s ease;
+    border: 1.5px solid rgba(201,146,42,0.35);
+    border-radius: 10px;
+    padding: 44px 52px 40px;
+    width: min(860px, 96vw);
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.85);
+    animation: slideUp 0.24s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
   }
-  @keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(28px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
   .modal-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.3rem;
+    font-size: 1.7rem;
     color: var(--gold-light);
-    margin-bottom: 24px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid rgba(201,146,42,0.2);
+    margin-bottom: 30px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(201,146,42,0.25);
     letter-spacing: 0.03em;
   }
+
   .modal-label {
     display: block;
-    font-size: 0.72rem;
-    letter-spacing: 0.2em;
+    font-size: 0.75rem;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     color: var(--wood-plank);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
-  .modal-input, .modal-textarea {
+
+  .modal-input {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(160,97,42,0.45);
+    border-radius: 5px;
+    color: var(--cream);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 1.15rem;
+    padding: 14px 18px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 26px;
+  }
+
+  .modal-textarea {
     width: 100%;
     background: rgba(255,255,255,0.06);
     border: 1.5px solid rgba(160,97,42,0.45);
-    border-radius: 4px;
+    border-radius: 5px;
     color: var(--cream);
     font-family: 'Sarabun', sans-serif;
-    font-size: 0.95rem;
-    padding: 10px 14px;
+    font-size: 1.05rem;
+    padding: 16px 18px;
     outline: none;
     transition: border-color 0.2s, background 0.2s;
-    margin-bottom: 18px;
+    margin-bottom: 28px;
+    /* ขยาย textarea ให้สูงมากขึ้น */
+    height: clamp(320px, 42vh, 560px);
+    resize: vertical;
+    line-height: 1.75;
   }
-  .modal-input:focus, .modal-textarea:focus { border-color: var(--gold); background: rgba(255,255,255,0.09); }
-  .modal-textarea { height: 160px; resize: vertical; line-height: 1.65; }
-  .modal-actions { display: flex; gap: 10px; margin-top: 4px; }
+
+  .modal-input:focus, .modal-textarea:focus {
+    border-color: var(--gold);
+    background: rgba(255,255,255,0.1);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
   .btn-save {
     flex: 1;
     background: linear-gradient(135deg, var(--gold) 0%, var(--wood-plank) 100%);
     color: var(--wood-dark);
     font-family: 'Sarabun', sans-serif;
     font-weight: 700;
-    font-size: 0.88rem;
+    font-size: 1rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     border: none;
-    border-radius: 4px;
-    padding: 11px;
+    border-radius: 5px;
+    padding: 15px;
     cursor: pointer;
     transition: filter 0.2s;
   }
   .btn-save:hover { filter: brightness(1.12); }
+
   .btn-delete {
     background: rgba(180,30,30,0.18);
     border: 1.5px solid rgba(180,30,30,0.4);
-    border-radius: 4px;
+    border-radius: 5px;
     color: #e07070;
     font-family: 'Sarabun', sans-serif;
-    font-size: 0.85rem;
-    padding: 11px 18px;
+    font-size: 0.95rem;
+    padding: 15px 24px;
     cursor: pointer;
     transition: background 0.2s;
   }
   .btn-delete:hover { background: rgba(180,30,30,0.35); }
+
   .btn-close {
     background: transparent;
     border: 1.5px solid rgba(255,255,255,0.12);
-    border-radius: 4px;
+    border-radius: 5px;
     color: rgba(245,234,216,0.6);
     font-family: 'Sarabun', sans-serif;
-    font-size: 0.85rem;
-    padding: 11px 18px;
+    font-size: 0.95rem;
+    padding: 15px 24px;
     cursor: pointer;
     transition: background 0.2s;
   }
   .btn-close:hover { background: rgba(255,255,255,0.06); }
+
+  /* scrollbar ของ modal */
+  .modal-card::-webkit-scrollbar { width: 6px; }
+  .modal-card::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+  .modal-card::-webkit-scrollbar-thumb { background: var(--shelf-board); border-radius: 3px; }
 </style>
+
 <header class="shelf-header">
   <button class="back-btn" onclick="window.location.href='index.html'">← ห้องสมุด</button>
   <div class="header-info">
@@ -760,7 +780,6 @@ function getDecoClass(idx) {
 }
 
 async function loadBooks() {
-  // ใช้ relative URL แทน localhost
   const res   = await fetch(`/shelves/${shelfId}/books`);
   const books = await res.json();
 
